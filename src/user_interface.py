@@ -42,35 +42,35 @@ class Financial_Application:
 
         pay_emp = Button(leftframe, text="Pay an Employee", command=lambda: openNewWindow(self.root, func.pay_emp))
         pay_emp.pack(padx=pX, pady=pY)
-        view_payroll = Button(leftframe, text="View Payroll Events")
+        view_payroll = Button(leftframe, text="View Payroll Events", command=lambda: openNewWindow(self.root, func.view_payroll))
         view_payroll.pack(padx=pX, pady=pY)
 
-        view_cust = Button(rightframe, text="View Customers")
+        view_cust = Button(rightframe, text="View Customers", command=lambda: openNewWindow(self.root, func.view_cust))
         view_cust.pack(padx=pX, pady=pY)
-        add_cust = Button(rightframe, text="Add Customers")
+        add_cust = Button(rightframe, text="Add Customers", command=lambda: openNewWindow(self.root, func.add_cust))
         add_cust.pack(padx=pX, pady=pY)
 
-        create_invoice = Button(bottomframe, text="Create Invoice")
+        create_invoice = Button(bottomframe, text="Create Invoice", command=lambda: openNewWindow(self.root, func.create_invoice))
         create_invoice.pack(padx=pX, pady=pY)
-        invoice_hist = Button(bottomframe, text="Invoice History")
+        invoice_hist = Button(bottomframe, text="Invoice History", command=lambda: openNewWindow(self.root, func.invoice_hist))
         invoice_hist.pack(padx=pX, pady=pY)
 
-        view_vendors = Button(rightframe, text="View Vendors")
+        view_vendors = Button(rightframe, text="View Vendors", command=lambda: openNewWindow(self.root, func.view_vendor))
         view_vendors.pack(padx=pX, pady=pY)
-        add_vendors = Button(rightframe, text="Add Vendors")
+        add_vendors = Button(rightframe, text="Add Vendors", command=lambda: openNewWindow(self.root, func.add_vendor))
         add_vendors.pack(padx=pX, pady=pY)
 
-        create_PO = Button(bottomframe, text="Create PO")
+        create_PO = Button(bottomframe, text="Create PO", command=lambda: openNewWindow(self.root, func.create_PO))
         create_PO.pack(padx=pX, pady=pY)
-        PO_hist = Button(bottomframe, text="PO History")
+        PO_hist = Button(bottomframe, text="PO History", command=lambda: openNewWindow(self.root, func.PO_hist))
         PO_hist.pack(padx=pX, pady=pY)
 
-        balance_sheet = Button(frame4, text="Balance Sheet")
+        balance_sheet = Button(frame4, text="Balance Sheet", command=lambda: openNewWindow(self.root, func.balance_st))
         balance_sheet.pack(padx=pX, pady=pY)
-        income_statement = Button(frame4, text="Income Statement")
+        income_statement = Button(frame4, text="Income Statement", command=lambda: openNewWindow(self.root, func.income_stmt))
         income_statement.pack(padx=pX, pady=pY)
 
-        inventory = Button(frame4, text="Inventory")
+        inventory = Button(frame4, text="Inventory", command=lambda: openNewWindow(self.root, func.inventory))
         inventory.pack(padx=pX, pady=pY)
 
 
