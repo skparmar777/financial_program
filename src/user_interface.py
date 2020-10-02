@@ -1,5 +1,6 @@
 from tkinter import *
 import tkinter.font as font
+from functions import *
 
 class Financial_Application:
     def __init__(self):
@@ -34,12 +35,12 @@ class Financial_Application:
         pX = 100
         pY = 30
 
-        view_emp = Button(leftframe, text="View Employees")
+        view_emp = Button(leftframe, text="View Employees", command=lambda: openNewWindow(self.root, func.view_emp))
         view_emp.pack(padx=pX, pady=pY)
-        add_emp = Button(leftframe, text="Add Employees")
+        add_emp = Button(leftframe, text="Add Employees", command=lambda: openNewWindow(self.root, func.add_emp))
         add_emp.pack(padx=pX, pady=pY)
 
-        pay_emp = Button(leftframe, text="Pay an Employee")
+        pay_emp = Button(leftframe, text="Pay an Employee", command=lambda: openNewWindow(self.root, func.pay_emp))
         pay_emp.pack(padx=pX, pady=pY)
         view_payroll = Button(leftframe, text="View Payroll Events")
         view_payroll.pack(padx=pX, pady=pY)
