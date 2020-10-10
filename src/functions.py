@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from pandastable import Table
 from csv import DictWriter
+import json
 
 """
 Global Variables
@@ -13,6 +14,7 @@ EMPLOYEE_FILE = "../data/employees.csv"
 CUSTOMER_FILE = "../data/customers.csv"
 VENDOR_FILE = "../data/vendors.csv"
 INCOME_STMT = "../data/income_statement.csv"
+BALANCE_SHT = "../data/balance_sheet.json"
 
 
 class func(enum.Enum):
@@ -41,6 +43,11 @@ def append_dict_as_row(file_name, dict_of_elem, field_names):
         dict_writer = DictWriter(write_obj, fieldnames=field_names)
         # Add dictionary as wor in the csv
         dict_writer.writerow(dict_of_elem)
+
+def balance_sheet(newWindow):
+    with open(BALANCE_SHT) as f:
+        data = json.load(f)
+    print(data)
 
 def process_emp_payment(employee, df, newWindow):
     emp_name = employee.get()
@@ -141,5 +148,7 @@ def openNewWindow(master, functionality):
         pay_employee(newWindow)
     elif functionality == func.income_stmt:
         view(newWindow, 'income_statement', INCOME_STMT)
+    elif functionality == func.balance_st:
+        balance_sheet(newWindow)
 
 
