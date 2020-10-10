@@ -12,6 +12,7 @@ Global Variables
 EMPLOYEE_FILE = "../data/employees.csv"
 CUSTOMER_FILE = "../data/customers.csv"
 VENDOR_FILE = "../data/vendors.csv"
+INCOME_STMT = "../data/income_statement.csv"
 
 
 class func(enum.Enum):
@@ -41,6 +42,35 @@ def append_dict_as_row(file_name, dict_of_elem, field_names):
         # Add dictionary as wor in the csv
         dict_writer.writerow(dict_of_elem)
 
+def process_emp_payment(employee, df, newWindow):
+    emp_name = employee.get()
+    print("var", employee.get())
+    salary = df[df.fullname == employee.get()].Salary.iloc[0]
+    print(salary)
+    #TODO process info in balance sheet, income statement, payroll history, and expenses
+    newWindow.destroy()
+
+
+def pay_employee(newWindow):
+    newWindow.title("Pay an Employee")
+    newWindow.geometry("300x600")
+    Label(newWindow,
+          text="Choose an employee to pay and enter amount:").grid(row=0)
+    variable = StringVar(newWindow)
+    variable.set("---")
+    df = pd.read_csv(EMPLOYEE_FILE)
+    df["fullname"] = df['First_Name'] + ' ' + df['Last_Name']
+    options = df.fullname.values.tolist()
+    w = OptionMenu(*(newWindow, variable) + tuple(options))
+    w.grid(row=1)
+
+    b1 = Button(newWindow, text="Pay Employee",
+                command=lambda: process_emp_payment(variable, df, newWindow)).grid(row=2)
+
+
+
+
+
 def view(newWindow, label, file):
     # sets the title of the
     # Toplevel widget
@@ -51,6 +81,13 @@ def view(newWindow, label, file):
     Label(newWindow,
           text=label).pack()
     df = pd.read_csv(file)
+    if label == "income_statement":
+        cols = df.columns.tolist()
+        df = df.replace(np.nan, '', regex=True)
+        df = df.T
+        df.insert(0, " ", cols)
+
+        print(df)
     f = Frame(newWindow)
     f.pack(fill=BOTH, expand=1)
     pt = Table(f, dataframe=df,showtoolbar=True, showstatusbar=True)
@@ -100,5 +137,9 @@ def openNewWindow(master, functionality):
         view(newWindow, "View Vendors", VENDOR_FILE)
     elif functionality == func.add_vendor:
         add(newWindow, "Add Vendor", VENDOR_FILE)
+    elif functionality == func.pay_emp:
+        pay_employee(newWindow)
+    elif functionality == func.income_stmt:
+        view(newWindow, 'income_statement', INCOME_STMT)
 
 
