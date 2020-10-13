@@ -20,6 +20,7 @@ BALANCE_SHT = "../data/balance_sheet.json"
 PAYMENT_HIST = "../data/payroll_history.csv"
 PO_HIST = "../data/po_hist.csv"
 INVENTORY_FILE = "../data/inventory.csv"
+INVOICE_FILE = "../data/invoices.csv"
 
 # Tax Info
 STATE_TAX = .0495
@@ -31,6 +32,11 @@ INVENTORY = 10000
 
 PARTS = {"Wheels": 0.01, "Windshield Glass": 0.05, 'Interior': 0.05,
          'Tank': 0.10, 'Axles': 0.01, 'Cab': 0.10, 'Body': 0.10, 'Box': 0.05}
+# 8 wheels, 1 windshield glass, 1 interior, 1 tank, 4 axles, 1 cab, 1 body, 1 box
+PART_NUMS = [("Wheels", 8), ("Windshield Glass", 1), ('Interior',1), ('Tank', 1), ('Axles', 4),
+             ('Cab', 1), ('Body', 1), ('Box',1)]
+UNIT_COGS = 0.57
+
 
 # TODO figure out rest of income statement/balance sheet
 class func(enum.Enum):
@@ -67,6 +73,18 @@ def get_national_tax_rate(salary):
     else:
         return .37
 
+def roll_30():
+    today = date.today()
+    today = today.strftime("%d")
+    if today == "28":
+        with open(BALANCE_SHT) as f:
+            data = json.load(f)
+        data['Assets']['Cash'] -= data["Liabilities & Net Worth"]['Accounts Payable']
+        ["Liabilities & Net Worth"]['Accounts Payable'] = 0
+        data['Assets']['Cash'] += data['Assets']['Accounts Receivable']
+        data['Assets']['Accounts Receivable'] = 0
+        with open(BALANCE_SHT, 'w') as fp:
+            json.dump(data, fp)
 
 def calculate_trucks(df):
     # 8 wheels, 1 windshield glass, 1 interior, 1 tank, 4 axles, 1 cab, 1 body, 1 box
@@ -109,6 +127,7 @@ def append_dict_as_row(file_name, dict_of_elem, field_names):
 
 
 def balance_sheet(newWindow):
+    newWindow.title("Balance Sheet")
     with open(BALANCE_SHT) as f:
         data = json.load(f)
 
@@ -116,7 +135,7 @@ def balance_sheet(newWindow):
     liabilities = data['Liabilities & Net Worth']
     Label(newWindow, text="Assets").grid(row=0, column=0)
     Label(newWindow, text="Liabilities & Net Worth").grid(row=0, column=2)
-    assets['Total Current Assets'] = assets['Cash'] + assets['Accounts Recievable'] + assets['Inventory']
+    assets['Total Current Assets'] = assets['Cash'] + assets['Accounts Receivable'] + assets['Inventory']
     assets["Total Fixed Assets"] = assets["Land/Buildings"] + assets["Equipment"] + assets["Furnitures and Fixtures"]
     assets["Total Assets"] = assets["Total Fixed Assets"] + assets['Total Current Assets']
 
@@ -211,7 +230,7 @@ def process_po(variable, e1, newWindow):
     print(supplier)
     price = PARTS[part_name]
     print(quantity, type(quantity))
-    total = quantity*price
+    total = quantity * price
     # TODO update history of POs
     labels = ['Date', 'Supplier', 'Part', 'Quantity', 'Price/Part', 'Total']
     values = [today, supplier, part_name, quantity, price, total]
@@ -260,6 +279,76 @@ def create_po(newWindow):
                 command=lambda: process_po(variable, e1, newWindow)).grid(row=3)
 
 
+def process_invoice(variable, e1, newWindow):
+    customer_name = variable.get()
+    quantity = int(e1.get())
+    today = date.today()
+    today = today.strftime("%m/%d/%y")
+
+    customer_df = pd.read_csv(CUSTOMER_FILE)
+    price = float(customer_df[customer_df.Company_Name == customer_name]['Price'].iloc[0])
+    total = price * quantity
+    # process invoice history
+    labels = ['Date', 'Customer', 'Quantity', 'Price/Unit', 'Total']
+    values = [today, customer_name, quantity, price, total]
+    new_row = {}
+    for idx in range(len(labels)):
+        new_row[labels[idx]] = values[idx]
+    print(new_row)
+    append_dict_as_row(INVOICE_FILE, new_row, labels)
+
+    # process inventory
+    for part_name, num in PART_NUMS:
+        total_quantity = num * quantity
+        inventory_df = pd.read_csv(INVENTORY_FILE)
+        inventory_df['idx'] = inventory_df['Part'].copy()
+        inventory_df.set_index("idx", inplace=True)
+        curr_quantity = inventory_df[inventory_df.Part == part_name].Quantity.iloc[0]
+        curr_quantity -= total_quantity
+        print("new quantity:", curr_quantity)
+        inventory_df.loc[part_name, 'Quantity'] = curr_quantity
+        print(inventory_df)
+        inventory_df.Value = inventory_df.Quantity * inventory_df['Price/Unit']
+        inventory_df.to_csv(INVENTORY_FILE, index=False)
+
+    # TODO update balance sheet
+    with open(BALANCE_SHT) as f:
+        data = json.load(f)
+    data['Assets']['Accounts Receivable'] += total
+    with open(BALANCE_SHT, 'w') as fp:
+        json.dump(data, fp)
+
+    # update income statement
+    income_statement = pd.read_csv(INCOME_STMT)
+    income_statement['Sales'].loc[0] += total
+    income_statement['COGS'].loc[0] += (quantity * UNIT_COGS)
+    income_statement.to_csv(INCOME_STMT, index=False)
+    newWindow.destroy()
+
+def create_invoice(newWindow):
+    newWindow.title("Create Invoice")
+    newWindow.geometry("300x600")
+    variable = StringVar(newWindow)
+    Label(newWindow,
+          text="Select Customer:").grid(row=0)
+    variable.set("---")
+    df = pd.read_csv(CUSTOMER_FILE)
+    options = df.Company_Name.values.tolist()
+    w = OptionMenu(*(newWindow, variable) + tuple(options))
+    w.grid(row=1)
+
+    inventory_df = pd.read_csv(INVENTORY_FILE)
+    num_trucks = calculate_trucks(inventory_df)
+    Label(newWindow,
+          text="Quantity Available:" + str(num_trucks)).grid(row=2)
+    Label(newWindow, text="Quantity").grid(row=3, column=0)
+    e1 = Entry(newWindow)
+    e1.grid(row=3, column=1)
+
+    b1 = Button(newWindow, text="Submit Order",
+                command=lambda: process_invoice(variable, e1, newWindow)).grid(row=4)
+
+
 def view(newWindow, label, file):
     # sets the title of the
     # Toplevel widget
@@ -271,6 +360,12 @@ def view(newWindow, label, file):
           text=label).pack()
     df = pd.read_csv(file)
     if label == "income_statement":
+        df['Total_Expenses'] = df.Payroll + df.Payroll_Withholding + df.Bills + df.Annual_Expenses
+        df['Operating_Income'] = df.Sales - df.COGS - df.Total_Expenses
+        df['Income_Taxes'] = df.Operating_Income * (.095 + 0.21)
+        df['Net_Income'] = df.Operating_Income - df.Income_Taxes
+        df['Gross_Profit'] = df.Sales - df.COGS
+
         cols = df.columns.tolist()
         df = df.replace(np.nan, '', regex=True)
         df = df.T
@@ -354,3 +449,7 @@ def openNewWindow(master, functionality):
         view(newWindow, "Inventory", INVENTORY_FILE)
     elif functionality == func.create_PO:
         create_po(newWindow)
+    elif functionality == func.create_invoice:
+        create_invoice(newWindow)
+    elif functionality == func.invoice_hist:
+        view(newWindow, 'Invoice History', INVOICE_FILE)

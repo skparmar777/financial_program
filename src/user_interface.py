@@ -73,6 +73,7 @@ class Financial_Application:
         inventory = Button(frame4, text="Inventory", command=lambda: openNewWindow(self.root, func.inventory))
         inventory.pack(padx=pX, pady=pY)
 
+        roll_30()
 
         self.root.title("Test")
         self.root.mainloop()

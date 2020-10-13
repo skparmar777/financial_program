@@ -1,7 +1,6 @@
 Company_Name,Part,Price/Unit,Address1,Address2,City,State,Zipcode
-
 Tires r us,Wheels,0.01,,,,,
-Windsheilders,Windshield Glass,0.05,,,,,
+Windshielders,Windshield Glass,0.05,,,,,
 int,Interior,0.05,,,,,
 tanky,Tank,0.10,,,,,
 axlerod,Axles,0.01,,,,,
